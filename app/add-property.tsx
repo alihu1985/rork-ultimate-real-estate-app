@@ -369,6 +369,14 @@ export default function AddPropertyScreen() {
       Alert.alert('خطأ', 'يرجى إدخال سعر صحيح');
       return false;
     }
+    if (!bedrooms || parseInt(bedrooms) <= 0) {
+      Alert.alert('خطأ', 'يرجى إدخال عدد الغرف');
+      return false;
+    }
+    if (!bathrooms || parseInt(bathrooms) <= 0) {
+      Alert.alert('خطأ', 'يرجى إدخال عدد الحمامات');
+      return false;
+    }
     if (!area || parseFloat(area) <= 0) {
       Alert.alert('خطأ', 'يرجى إدخال مساحة صحيحة');
       return false;
