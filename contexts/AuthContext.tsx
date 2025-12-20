@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 
-import { User, UserType, AuthMethod } from '@/types/auth';
+import { User, AuthMethod } from '@/types/auth';
 import { supabase } from '@/lib/supabase';
 
 const USER_KEY = 'user';
@@ -123,6 +123,7 @@ export const [AuthContext, useAuth] = createContextHook(() => {
       const newUser: User = {
         id: data.user.id,
         type: 'user',
+        role: profile?.role || 'user',
         email: data.user.email || credentials.value,
         name: profile?.name || data.user.email?.split('@')[0] || 'مستخدم',
         createdAt: data.user.created_at || new Date().toISOString(),
@@ -204,6 +205,7 @@ export const [AuthContext, useAuth] = createContextHook(() => {
       const newUser: User = {
         id: data.user.id,
         type: 'user',
+        role: 'user',
         email: credentials.value,
         name: credentials.name,
         createdAt: data.user.created_at || new Date().toISOString(),
@@ -256,6 +258,7 @@ export const [AuthContext, useAuth] = createContextHook(() => {
     isAuthenticated: !!user,
     isGuest: user?.type === 'guest',
     isUser: user?.type === 'user',
+    isAdmin: user?.role === 'admin',
     login: loginMutation.mutateAsync,
     signup: signupMutation.mutateAsync,
     loginAsGuest,

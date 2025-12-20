@@ -20,6 +20,7 @@ CREATE TABLE users (
   phone TEXT UNIQUE,
   name TEXT,
   user_type TEXT NOT NULL DEFAULT 'guest' CHECK (user_type IN ('guest', 'user')),
+  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
   
   -- التواريخ
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

@@ -175,6 +175,30 @@ export const [PropertyContext, useProperties] = createContextHook(() => {
     },
   });
 
+  const deletePropertyMutation = useMutation({
+    mutationFn: async (propertyId: string) => {
+      console.log('Deleting property from Supabase:', propertyId);
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', propertyId);
+
+      if (error) {
+        console.error('Error deleting property:', JSON.stringify(error, null, 2));
+        const errorMessage = typeof error === 'object' && error !== null && 'message' in error 
+          ? String(error.message) 
+          : 'فشل حذف العقار';
+        throw new Error(errorMessage);
+      }
+
+      console.log('Property deleted successfully:', propertyId);
+      return propertyId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+    },
+  });
+
   return {
     properties: propertiesQuery.data || [],
     favorites,
@@ -182,8 +206,10 @@ export const [PropertyContext, useProperties] = createContextHook(() => {
     toggleFavorite,
     isFavorite,
     addProperty: addPropertyMutation.mutateAsync,
+    deleteProperty: deletePropertyMutation.mutateAsync,
     isLoading: favoritesQuery.isLoading || propertiesQuery.isLoading,
     isAddingProperty: addPropertyMutation.isPending,
+    isDeletingProperty: deletePropertyMutation.isPending,
     error: propertiesQuery.error,
   };
 });

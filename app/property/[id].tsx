@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Heart, MapPin, Bed, Bath, Maximize, Phone, ChevronLeft } from 'lucide-react-native';
+import { Heart, MapPin, Bed, Bath, Maximize, Phone, ChevronLeft, Trash2 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   Linking,
   Platform,
+  Alert,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,13 +18,15 @@ import MapView, { Marker } from 'react-native-maps';
 
 import Colors from '@/constants/Colors';
 import { useProperties } from '@/contexts/PropertyContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const { width } = Dimensions.get('window');
 
 export default function PropertyDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { properties, toggleFavorite, isFavorite } = useProperties();
+  const { properties, toggleFavorite, isFavorite, deleteProperty, isDeletingProperty } = useProperties();
+  const { isAdmin } = useAuth();
   const [imageIndex, setImageIndex] = useState(0);
 
   const formatPrice = (price: number, currency: 'USD' | 'IQD'): string => {
@@ -46,6 +49,32 @@ export default function PropertyDetailsScreen() {
 
   const handleCall = () => {
     Linking.openURL(`tel:${property.ownerPhone}`);
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      'حذف العقار',
+      'هل أنت متأكد من حذف هذا العقار؟ لا يمكن التراجع عن هذا الإجراء.',
+      [
+        {
+          text: 'إلغاء',
+          style: 'cancel',
+        },
+        {
+          text: 'حذف',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteProperty(property.id);
+              Alert.alert('تم الحذف', 'تم حذف العقار بنجاح');
+              router.back();
+            } catch (error) {
+              Alert.alert('خطأ', error instanceof Error ? error.message : 'فشل حذف العقار');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const favorite = isFavorite(property.id);
@@ -87,16 +116,27 @@ export default function PropertyDetailsScreen() {
                 <ChevronLeft size={24} color={Colors.text} />
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.headerButton}
-                onPress={() => toggleFavorite(property.id)}
-              >
-                <Heart
-                  size={24}
-                  color={favorite ? Colors.error : Colors.text}
-                  fill={favorite ? Colors.error : 'transparent'}
-                />
-              </TouchableOpacity>
+              <View style={styles.headerActions}>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.headerButton, styles.deleteButton]}
+                    onPress={handleDelete}
+                    disabled={isDeletingProperty}
+                  >
+                    <Trash2 size={20} color={Colors.white} />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={styles.headerButton}
+                  onPress={() => toggleFavorite(property.id)}
+                >
+                  <Heart
+                    size={24}
+                    color={favorite ? Colors.error : Colors.text}
+                    fill={favorite ? Colors.error : 'transparent'}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </SafeAreaView>
         </View>
@@ -299,6 +339,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   headerButton: {
     width: 40,
     height: 40,
@@ -311,6 +355,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  deleteButton: {
+    backgroundColor: Colors.error,
   },
   content: {
     padding: 20,
