@@ -6,6 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Property, PropertyFilters } from '@/types/property';
 import type { Database } from '@/types/database';
+import { MOCK_PROPERTIES } from '@/mocks/properties';
 
 type PropertyRow = Database['public']['Tables']['properties']['Row'];
 
@@ -14,6 +15,54 @@ const FAVORITES_KEY = 'favorites';
 export const [PropertyContext, useProperties] = createContextHook(() => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const queryClient = useQueryClient();
+
+  const seedDataMutation = useMutation({
+    mutationFn: async () => {
+      console.log('Seeding mock data to Supabase...');
+      const propertiesToInsert = MOCK_PROPERTIES.map(prop => ({
+        title: prop.title,
+        description: prop.description,
+        price: prop.price,
+        currency: prop.currency,
+        type: prop.type,
+        status: prop.status,
+        latitude: prop.location.latitude,
+        longitude: prop.location.longitude,
+        address: prop.location.address,
+        city: prop.location.city,
+        neighborhood: prop.location.neighborhood,
+        bedrooms: prop.features.bedrooms,
+        bathrooms: prop.features.bathrooms,
+        area: prop.features.area,
+        parking: prop.features.parking || false,
+        elevator: prop.features.elevator || false,
+        furnished: prop.features.furnished || false,
+        security: prop.features.security || false,
+        garden: prop.features.garden || false,
+        pool: prop.features.pool || false,
+        gym: prop.features.gym || false,
+        images: prop.images,
+        owner_name: prop.ownerName,
+        owner_phone: prop.ownerPhone,
+      }));
+
+      const { data, error } = await supabase
+        .from('properties')
+        .insert(propertiesToInsert)
+        .select();
+
+      if (error) {
+        console.error('Error seeding data:', error);
+        throw error;
+      }
+
+      console.log(`Successfully seeded ${data?.length} properties`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+    },
+  });
 
   const propertiesQuery = useQuery({
     queryKey: ['properties'],
@@ -30,6 +79,11 @@ export const [PropertyContext, useProperties] = createContextHook(() => {
       }
 
       console.log('Fetched properties:', data?.length);
+
+      if (data && data.length === 0) {
+        console.log('No properties found, seeding mock data...');
+        seedDataMutation.mutate();
+      }
 
       return (data || []).map((row: PropertyRow) => ({
         id: row.id,
@@ -207,9 +261,11 @@ export const [PropertyContext, useProperties] = createContextHook(() => {
     isFavorite,
     addProperty: addPropertyMutation.mutateAsync,
     deleteProperty: deletePropertyMutation.mutateAsync,
+    seedMockData: seedDataMutation.mutateAsync,
     isLoading: favoritesQuery.isLoading || propertiesQuery.isLoading,
     isAddingProperty: addPropertyMutation.isPending,
     isDeletingProperty: deletePropertyMutation.isPending,
+    isSeedingData: seedDataMutation.isPending,
     error: propertiesQuery.error,
   };
 });
