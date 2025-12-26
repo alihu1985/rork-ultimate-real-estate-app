@@ -38,6 +38,38 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
         }
         if (error.code === 'PGRST116') {
           console.log('No active subscription found, creating free tier...');
+          
+          const { data: userExists } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', user.id)
+            .single();
+
+          if (!userExists) {
+            console.log('User not found in database, creating user record...');
+            const { error: userCreateError } = await supabase
+              .from('users')
+              .insert({
+                id: user.id,
+                email: user.email,
+                name: user.name || 'مستخدم',
+                user_type: user.type || 'user',
+                role: user.role || 'user',
+              });
+
+            if (userCreateError) {
+              console.error('Error creating user:', userCreateError);
+              return {
+                id: 'temp-id',
+                userId: user.id,
+                tier: 'free' as SubscriptionTier,
+                startDate: new Date().toISOString(),
+                endDate: null,
+                isActive: true,
+              } as UserSubscription;
+            }
+          }
+
           const { data: newSub, error: createError } = await supabase
             .from('user_subscriptions')
             .insert({
@@ -121,6 +153,39 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
         }
         if (error.code === 'PGRST116') {
           console.log('No usage record found, creating one...');
+          
+          const { data: userExists } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', user.id)
+            .single();
+
+          if (!userExists) {
+            console.log('User not found in database, creating user record...');
+            const { error: userCreateError } = await supabase
+              .from('users')
+              .insert({
+                id: user.id,
+                email: user.email,
+                name: user.name || 'مستخدم',
+                user_type: user.type || 'user',
+                role: user.role || 'user',
+              });
+
+            if (userCreateError) {
+              console.error('Error creating user:', userCreateError);
+              return {
+                id: 'temp-id',
+                userId: user.id,
+                propertiesAdded: 0,
+                aiSearchesUsed: 0,
+                phoneViewsUsed: 0,
+                periodStart: startOfMonth.toISOString(),
+                periodEnd: null,
+              } as UserUsage;
+            }
+          }
+
           const { data: newUsage, error: createError } = await supabase
             .from('user_usage')
             .insert({
