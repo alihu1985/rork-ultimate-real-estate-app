@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { User, LogOut, Mail, Phone, Save, Edit2, Database } from 'lucide-react-native';
+import { User, LogOut, Mail, Phone, Save, Edit2 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -16,12 +16,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Colors from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProperties } from '@/contexts/PropertyContext';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout, isGuest } = useAuth();
-  const { seedMockData, isSeedingData, properties } = useProperties();
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
@@ -60,30 +58,6 @@ export default function ProfileScreen() {
     setEmail(user?.email || '');
     setPhone(user?.phone || '');
     setIsEditing(false);
-  };
-
-  const handleSeedData = async () => {
-    Alert.alert(
-      'إضافة بيانات وهمية',
-      `يوجد حالياً ${properties.length} عقار. هل تريد إضافة 12 عقار وهمي إلى قاعدة البيانات؟`,
-      [
-        {
-          text: 'إلغاء',
-          style: 'cancel',
-        },
-        {
-          text: 'إضافة',
-          onPress: async () => {
-            try {
-              await seedMockData();
-              Alert.alert('تم بنجاح', 'تم إضافة البيانات الوهمية إلى قاعدة البيانات');
-            } catch (error) {
-              Alert.alert('خطأ', `فشل إضافة البيانات: ${error}`);
-            }
-          },
-        },
-      ]
-    );
   };
 
   return (
@@ -228,17 +202,6 @@ export default function ProfileScreen() {
               </View>
             </View>
           )}
-
-          <TouchableOpacity 
-            style={styles.seedButton}
-            onPress={handleSeedData}
-            disabled={isSeedingData}
-          >
-            <Database size={20} color={Colors.primary} />
-            <Text style={styles.seedButtonText}>
-              {isSeedingData ? 'جاري الإضافة...' : `إضافة بيانات وهمية (${properties.length} عقار حالياً)`}
-            </Text>
-          </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.logoutButton}
@@ -448,24 +411,6 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: Colors.error,
-    fontSize: 16,
-    fontWeight: '600' as const,
-  },
-  seedButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 20,
-    marginTop: 24,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: Colors.backgroundSecondary,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    gap: 8,
-  },
-  seedButtonText: {
-    color: Colors.primary,
     fontSize: 16,
     fontWeight: '600' as const,
   },
