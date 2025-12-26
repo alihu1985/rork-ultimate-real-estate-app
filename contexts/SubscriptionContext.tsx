@@ -31,6 +31,11 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
         .single();
 
       if (error) {
+        if (error.code === 'PGRST205') {
+          console.error('❌ الجداول غير موجودة في قاعدة البيانات');
+          console.error('يرجى تنفيذ ملف supabase-schema.sql في Supabase SQL Editor');
+          throw new Error('يرجى تنفيذ ملف supabase-schema.sql في قاعدة البيانات أولاً');
+        }
         if (error.code === 'PGRST116') {
           console.log('No active subscription found, creating free tier...');
           const { data: newSub, error: createError } = await supabase
@@ -45,6 +50,9 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
 
           if (createError) {
             console.error('Error creating subscription:', createError.message || JSON.stringify(createError));
+            if (createError.code === 'PGRST205') {
+              throw new Error('يرجى تنفيذ ملف supabase-schema.sql في قاعدة البيانات أولاً');
+            }
             return {
               id: 'temp-id',
               userId: user.id,
@@ -106,6 +114,11 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
         .single();
 
       if (error) {
+        if (error.code === 'PGRST205') {
+          console.error('❌ الجداول غير موجودة في قاعدة البيانات');
+          console.error('يرجى تنفيذ ملف supabase-schema.sql في Supabase SQL Editor');
+          throw new Error('يرجى تنفيذ ملف supabase-schema.sql في قاعدة البيانات أولاً');
+        }
         if (error.code === 'PGRST116') {
           console.log('No usage record found, creating one...');
           const { data: newUsage, error: createError } = await supabase
@@ -122,6 +135,9 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
 
           if (createError) {
             console.error('Error creating usage:', createError.message || JSON.stringify(createError));
+            if (createError.code === 'PGRST205') {
+              throw new Error('يرجى تنفيذ ملف supabase-schema.sql في قاعدة البيانات أولاً');
+            }
             return {
               id: 'temp-id',
               userId: user.id,
@@ -188,6 +204,9 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
 
       if (updateError) {
         console.error('Error deactivating old subscriptions:', updateError);
+        if (updateError.code === 'PGRST205') {
+          throw new Error('يرجى تنفيذ ملف supabase-schema.sql في قاعدة البيانات أولاً. الجداول المطلوبة غير موجودة.');
+        }
       }
 
       const plan = SUBSCRIPTION_PLANS.find(p => p.tier === newTier);
@@ -208,7 +227,10 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
 
       if (error) {
         console.error('Error creating subscription:', error);
-        throw new Error(error.message || 'Failed to create subscription');
+        if (error.code === 'PGRST205') {
+          throw new Error('يرجى تنفيذ ملف supabase-schema.sql في قاعدة البيانات أولاً. الجداول المطلوبة غير موجودة.');
+        }
+        throw new Error(error.message || 'فشل في إنشاء الاشتراك');
       }
 
       return {
