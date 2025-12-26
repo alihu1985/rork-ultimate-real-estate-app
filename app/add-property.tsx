@@ -23,6 +23,7 @@ import MapView, { Marker, MapPressEvent } from 'react-native-maps';
 import Colors from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProperties } from '@/contexts/PropertyContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { supabase } from '@/lib/supabase';
 import { PropertyType, PropertyStatus, Currency } from '@/types/property';
 
@@ -41,6 +42,7 @@ export default function AddPropertyScreen() {
   const router = useRouter();
   const { isGuest, isUser, logout } = useAuth();
   const { addProperty, isAddingProperty } = useProperties();
+  const { canAddProperty, limits, incrementPropertyCount } = useSubscription();
 
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -411,6 +413,18 @@ export default function AddPropertyScreen() {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
+    if (!canAddProperty) {
+      Alert.alert(
+        'وصلت للحد المسموح',
+        `لقد وصلت للحد الأقصى من العقارات (${limits.maxProperties}) في باقتك الحالية.\n\nللترقية إلى باقة أفضل، اذهب إلى صفحة الاشتراكات.`,
+        [
+          { text: 'إلغاء', style: 'cancel' },
+          { text: 'الاشتراكات', onPress: () => router.push('/subscription') },
+        ]
+      );
+      return;
+    }
+
     try {
       const imageUrls = await uploadImages();
       
@@ -445,6 +459,8 @@ export default function AddPropertyScreen() {
         ownerPhone,
       });
 
+      await incrementPropertyCount();
+      
       Alert.alert('نجح', 'تمت إضافة العقار بنجاح', [
         { text: 'حسناً', onPress: () => router.back() },
       ]);

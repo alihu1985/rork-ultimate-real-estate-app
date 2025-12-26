@@ -8,6 +8,7 @@ import { ActivityIndicator, View, StyleSheet } from "react-native";
 import { PropertyContext } from "@/contexts/PropertyContext";
 import { AuthContext, useAuth } from "@/contexts/AuthContext";
 import { CurrencyContext } from "@/contexts/CurrencyContext";
+import { SubscriptionContext } from "@/contexts/SubscriptionContext";
 import Colors from "@/constants/Colors";
 
 SplashScreen.preventAutoHideAsync();
@@ -86,6 +87,13 @@ function RootLayoutNav() {
           headerBackTitle: "رجوع",
         }} 
       />
+      <Stack.Screen 
+        name="subscription" 
+        options={{ 
+          headerTitle: "الاشتراكات",
+          headerBackTitle: "رجوع",
+        }} 
+      />
     </Stack>
   );
 }
@@ -94,13 +102,15 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthContext>
-        <CurrencyContext>
-          <PropertyContext>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <RootLayoutNav />
-            </GestureHandlerRootView>
-          </PropertyContext>
-        </CurrencyContext>
+        <SubscriptionContext>
+          <CurrencyContext>
+            <PropertyContext>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <RootLayoutNav />
+              </GestureHandlerRootView>
+            </PropertyContext>
+          </CurrencyContext>
+        </SubscriptionContext>
       </AuthContext>
     </QueryClientProvider>
   );

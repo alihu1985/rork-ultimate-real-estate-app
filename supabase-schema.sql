@@ -5,6 +5,8 @@
 -- ============================================
 
 -- حذف الجداول الموجودة إن وجدت
+DROP TABLE IF EXISTS user_usage CASCADE;
+DROP TABLE IF EXISTS user_subscriptions CASCADE;
 DROP TABLE IF EXISTS user_favorites CASCADE;
 DROP TABLE IF EXISTS properties CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
@@ -89,6 +91,38 @@ CREATE TABLE user_favorites (
 );
 
 -- ============================================
+-- جدول الاشتراكات
+-- ============================================
+CREATE TABLE user_subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  tier TEXT NOT NULL CHECK (tier IN ('free', 'premium', 'pro')),
+  start_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  end_date TIMESTAMP WITH TIME ZONE,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  
+  -- مستخدم واحد له اشتراك نشط واحد فقط
+  UNIQUE(user_id, is_active)
+);
+
+-- ============================================
+-- جدول استخدام المستخدم (للحدود)
+-- ============================================
+CREATE TABLE user_usage (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  properties_added INTEGER DEFAULT 0,
+  ai_searches_used INTEGER DEFAULT 0,
+  phone_views_used INTEGER DEFAULT 0,
+  period_start TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  period_end TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
 -- الفهارس لتحسين الأداء
 -- ============================================
 
@@ -113,6 +147,15 @@ CREATE INDEX idx_properties_filters ON properties(status, type, price, bedrooms,
 CREATE INDEX idx_favorites_user_id ON user_favorites(user_id);
 CREATE INDEX idx_favorites_property_id ON user_favorites(property_id);
 
+-- فهارس جدول الاشتراكات
+CREATE INDEX idx_subscriptions_user_id ON user_subscriptions(user_id);
+CREATE INDEX idx_subscriptions_tier ON user_subscriptions(tier);
+CREATE INDEX idx_subscriptions_active ON user_subscriptions(is_active);
+
+-- فهارس جدول الاستخدام
+CREATE INDEX idx_usage_user_id ON user_usage(user_id);
+CREATE INDEX idx_usage_period ON user_usage(period_start, period_end);
+
 -- ============================================
 -- تفعيل Row Level Security (RLS)
 -- ============================================
@@ -120,6 +163,8 @@ CREATE INDEX idx_favorites_property_id ON user_favorites(property_id);
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE properties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_favorites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_usage ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
 -- سياسات الأمان للمستخدمين
@@ -206,6 +251,58 @@ CREATE POLICY "السماح بحذف من المفضلة"
   USING (true);
 
 -- ============================================
+-- سياسات الأمان للاشتراكات
+-- ============================================
+
+-- السماح بقراءة الاشتراكات
+CREATE POLICY "السماح بقراءة الاشتراكات"
+  ON user_subscriptions
+  FOR SELECT
+  TO public
+  USING (true);
+
+-- السماح بإضافة اشتراك
+CREATE POLICY "السماح بإضافة اشتراك"
+  ON user_subscriptions
+  FOR INSERT
+  TO public
+  WITH CHECK (true);
+
+-- السماح بتحديث الاشتراك
+CREATE POLICY "السماح بتحديث الاشتراك"
+  ON user_subscriptions
+  FOR UPDATE
+  TO public
+  USING (true)
+  WITH CHECK (true);
+
+-- ============================================
+-- سياسات الأمان للاستخدام
+-- ============================================
+
+-- السماح بقراءة الاستخدام
+CREATE POLICY "السماح بقراءة الاستخدام"
+  ON user_usage
+  FOR SELECT
+  TO public
+  USING (true);
+
+-- السماح بإضافة سجل استخدام
+CREATE POLICY "السماح بإضافة سجل استخدام"
+  ON user_usage
+  FOR INSERT
+  TO public
+  WITH CHECK (true);
+
+-- السماح بتحديث الاستخدام
+CREATE POLICY "السماح بتحديث الاستخدام"
+  ON user_usage
+  FOR UPDATE
+  TO public
+  USING (true)
+  WITH CHECK (true);
+
+-- ============================================
 -- الدوال المساعدة
 -- ============================================
 
@@ -227,6 +324,18 @@ CREATE TRIGGER update_users_updated_at
 -- تفعيل التحديث التلقائي للعقارات
 CREATE TRIGGER update_properties_updated_at
   BEFORE UPDATE ON properties
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- تفعيل التحديث التلقائي للاشتراكات
+CREATE TRIGGER update_subscriptions_updated_at
+  BEFORE UPDATE ON user_subscriptions
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- تفعيل التحديث التلقائي للاستخدام
+CREATE TRIGGER update_usage_updated_at
+  BEFORE UPDATE ON user_usage
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 

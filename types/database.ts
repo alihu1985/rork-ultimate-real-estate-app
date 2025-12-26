@@ -9,6 +9,38 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      users: {
+        Row: {
+          id: string
+          email: string | null
+          phone: string | null
+          name: string | null
+          user_type: 'guest' | 'user'
+          role: 'user' | 'admin'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          email?: string | null
+          phone?: string | null
+          name?: string | null
+          user_type?: 'guest' | 'user'
+          role?: 'user' | 'admin'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string | null
+          phone?: string | null
+          name?: string | null
+          user_type?: 'guest' | 'user'
+          role?: 'user' | 'admin'
+          created_at?: string
+          updated_at?: string
+        }
+      }
       properties: {
         Row: {
           id: string
@@ -93,6 +125,73 @@ export interface Database {
           owner_name?: string
           owner_phone?: string
           created_at?: string
+        }
+      }
+      user_subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          tier: 'free' | 'premium' | 'pro'
+          start_date: string
+          end_date: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          tier: 'free' | 'premium' | 'pro'
+          start_date?: string
+          end_date?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          tier?: 'free' | 'premium' | 'pro'
+          start_date?: string
+          end_date?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      user_usage: {
+        Row: {
+          id: string
+          user_id: string
+          properties_added: number
+          ai_searches_used: number
+          phone_views_used: number
+          period_start: string
+          period_end: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          properties_added?: number
+          ai_searches_used?: number
+          phone_views_used?: number
+          period_start?: string
+          period_end?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          properties_added?: number
+          ai_searches_used?: number
+          phone_views_used?: number
+          period_start?: string
+          period_end?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
     }
