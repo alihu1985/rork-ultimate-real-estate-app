@@ -32,10 +32,23 @@ export const [AuthContext, useAuth] = createContextHook(() => {
       try {
         const stored = await AsyncStorage.getItem(USER_KEY);
         if (!stored) return null;
-        return JSON.parse(stored);
+        
+        if (typeof stored !== 'string' || stored.trim().length === 0) {
+          console.warn('Invalid stored user data format');
+          await AsyncStorage.removeItem(USER_KEY);
+          return null;
+        }
+        
+        try {
+          const parsed = JSON.parse(stored);
+          return parsed;
+        } catch (parseError) {
+          console.error('Failed to parse user data, clearing storage:', parseError);
+          await AsyncStorage.removeItem(USER_KEY);
+          return null;
+        }
       } catch (error) {
-        console.error('Error parsing user data:', error);
-        await AsyncStorage.removeItem(USER_KEY);
+        console.error('Error loading user data:', error);
         return null;
       }
     },

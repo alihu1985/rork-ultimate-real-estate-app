@@ -81,7 +81,11 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
             .single();
 
           if (createError) {
-            console.error('Error creating subscription:', createError.message || JSON.stringify(createError));
+            console.error('Error creating subscription:', {
+              message: createError.message,
+              code: createError.code,
+              details: createError.details,
+            });
             if (createError.code === 'PGRST205') {
               throw new Error('يرجى تنفيذ ملف supabase-schema.sql في قاعدة البيانات أولاً');
             }
@@ -104,7 +108,11 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
             isActive: newSub.is_active,
           } as UserSubscription;
         }
-        console.error('Error fetching subscription:', JSON.stringify(error, null, 2));
+        console.error('Error fetching subscription:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+        });
         return {
           id: 'temp-id',
           userId: user.id,
@@ -199,7 +207,11 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
             .single();
 
           if (createError) {
-            console.error('Error creating usage:', createError.message || JSON.stringify(createError));
+            console.error('Error creating usage:', {
+              message: createError.message,
+              code: createError.code,
+              details: createError.details,
+            });
             if (createError.code === 'PGRST205') {
               throw new Error('يرجى تنفيذ ملف supabase-schema.sql في قاعدة البيانات أولاً');
             }
@@ -224,7 +236,11 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
             periodEnd: newUsage.period_end,
           } as UserUsage;
         }
-        console.error('Error fetching usage:', JSON.stringify(error, null, 2));
+        console.error('Error fetching usage:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+        });
         return {
           id: 'temp-id',
           userId: user.id,
@@ -280,7 +296,11 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
         .eq('is_active', true);
 
       if (updateError) {
-        console.error('Error deactivating old subscriptions:', updateError);
+        console.error('Error deactivating old subscriptions:', {
+          message: updateError.message,
+          code: updateError.code,
+          details: updateError.details,
+        });
         if (updateError.code === 'PGRST205') {
           throw new Error('يرجى تنفيذ ملف supabase-schema.sql في قاعدة البيانات أولاً. الجداول المطلوبة غير موجودة.');
         }
@@ -303,7 +323,11 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
         .single();
 
       if (error) {
-        console.error('Error creating subscription:', error);
+        console.error('Error creating subscription:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+        });
         if (error.code === 'PGRST205') {
           throw new Error('يرجى تنفيذ ملف supabase-schema.sql في قاعدة البيانات أولاً. الجداول المطلوبة غير موجودة.');
         }
