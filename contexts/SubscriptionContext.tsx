@@ -180,11 +180,15 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
 
       console.log('Upgrading subscription to:', newTier);
 
-      await supabase
+      const { error: updateError } = await supabase
         .from('user_subscriptions')
         .update({ is_active: false })
         .eq('user_id', user.id)
         .eq('is_active', true);
+
+      if (updateError) {
+        console.error('Error deactivating old subscriptions:', updateError);
+      }
 
       const plan = SUBSCRIPTION_PLANS.find(p => p.tier === newTier);
       const endDate = plan && plan.duration > 0 
@@ -202,7 +206,10 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating subscription:', error);
+        throw new Error(error.message || 'Failed to create subscription');
+      }
 
       return {
         id: data.id,
