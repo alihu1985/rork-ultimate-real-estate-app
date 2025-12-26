@@ -192,9 +192,21 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
 
   const upgradeMutation = useMutation({
     mutationFn: async (newTier: SubscriptionTier) => {
-      if (!user?.id) throw new Error('User not authenticated');
+      if (!user?.id) throw new Error('المستخدم غير مسجل');
+      if (user.type === 'guest') throw new Error('لا يمكن للضيوف الترقية. يرجى إنشاء حساب أولاً.');
 
       console.log('Upgrading subscription to:', newTier);
+
+      const { data: userExists, error: checkError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (checkError || !userExists) {
+        console.error('❌ المستخدم غير موجود في قاعدة البيانات');
+        throw new Error('المستخدم غير موجود في قاعدة البيانات. يرجى تسجيل الخروج وإعادة تسجيل الدخول.');
+      }
 
       const { error: updateError } = await supabase
         .from('user_subscriptions')

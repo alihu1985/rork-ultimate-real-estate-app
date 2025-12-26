@@ -110,14 +110,36 @@ export const [AuthContext, useAuth] = createContextHook(() => {
         confirmed: data.user.email_confirmed_at,
       });
 
-      const { data: profile, error: profileError } = await supabase
+      let profile = null;
+      const { data: existingProfile, error: profileError } = await supabase
         .from('users')
         .select('*')
         .eq('id', data.user.id)
         .single();
 
       if (profileError) {
-        console.warn('⚠️ لم يتم العثور على ملف تعريف المستخدم:', profileError);
+        console.warn('⚠️ لم يتم العثور على ملف تعريف المستخدم، جاري الإنشاء:', profileError);
+        
+        const { data: newProfile, error: createError } = await supabase
+          .from('users')
+          .insert({
+            id: data.user.id,
+            email: credentials.value,
+            name: data.user.email?.split('@')[0] || 'مستخدم',
+            user_type: 'user',
+            role: 'user',
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('❌ فشل إنشاء ملف التعريف:', createError);
+        } else {
+          console.log('✅ تم إنشاء ملف التعريف بنجاح');
+          profile = newProfile;
+        }
+      } else {
+        profile = existingProfile;
       }
 
       const newUser: User = {
