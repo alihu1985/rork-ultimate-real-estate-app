@@ -109,5 +109,5 @@ export interface UserUsage {
   aiSearchesUsed: number;
   phoneViewsUsed: number;
   periodStart: string;
-  periodEnd: string;
+  periodEnd: string | null;
 }

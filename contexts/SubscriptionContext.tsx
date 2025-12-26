@@ -44,8 +44,15 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
             .single();
 
           if (createError) {
-            console.error('Error creating subscription:', createError);
-            return null;
+            console.error('Error creating subscription:', createError.message || createError);
+            return {
+              id: 'temp-id',
+              userId: user.id,
+              tier: 'free' as SubscriptionTier,
+              startDate: new Date().toISOString(),
+              endDate: null,
+              isActive: true,
+            } as UserSubscription;
           }
 
           return {
@@ -57,8 +64,15 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
             isActive: newSub.is_active,
           } as UserSubscription;
         }
-        console.error('Error fetching subscription:', error);
-        return null;
+        console.error('Error fetching subscription:', JSON.stringify(error, null, 2));
+        return {
+          id: 'temp-id',
+          userId: user.id,
+          tier: 'free' as SubscriptionTier,
+          startDate: new Date().toISOString(),
+          endDate: null,
+          isActive: true,
+        } as UserSubscription;
       }
 
       return {
@@ -107,8 +121,16 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
             .single();
 
           if (createError) {
-            console.error('Error creating usage:', createError);
-            return null;
+            console.error('Error creating usage:', createError.message || createError);
+            return {
+              id: 'temp-id',
+              userId: user.id,
+              propertiesAdded: 0,
+              aiSearchesUsed: 0,
+              phoneViewsUsed: 0,
+              periodStart: startOfMonth.toISOString(),
+              periodEnd: null,
+            } as UserUsage;
           }
 
           return {
@@ -121,8 +143,16 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
             periodEnd: newUsage.period_end,
           } as UserUsage;
         }
-        console.error('Error fetching usage:', error);
-        return null;
+        console.error('Error fetching usage:', JSON.stringify(error, null, 2));
+        return {
+          id: 'temp-id',
+          userId: user.id,
+          propertiesAdded: 0,
+          aiSearchesUsed: 0,
+          phoneViewsUsed: 0,
+          periodStart: startOfMonth.toISOString(),
+          periodEnd: null,
+        } as UserUsage;
       }
 
       return {
