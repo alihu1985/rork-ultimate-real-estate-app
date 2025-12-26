@@ -19,7 +19,7 @@ import Colors from '@/constants/Colors';
 
 export default function SubscriptionScreen() {
   const { user, isGuest } = useAuth();
-  const { tier, usage, limits, upgradeTo, isUpgrading, isLoading } = useSubscription();
+  const { tier, usage, limits, isLoading } = useSubscription();
 
   const handleUpgrade = async (newTier: SubscriptionTier) => {
     if (isGuest) {
@@ -33,25 +33,10 @@ export default function SubscriptionScreen() {
       return;
     }
 
-    Alert.alert(
-      'تأكيد الاشتراك',
-      `هل تريد الترقية إلى ${SUBSCRIPTION_PLANS.find(p => p.tier === newTier)?.nameArabic}؟`,
-      [
-        { text: 'إلغاء', style: 'cancel' },
-        {
-          text: 'تأكيد',
-          onPress: async () => {
-            try {
-              await upgradeTo(newTier);
-              Alert.alert('تم بنجاح', 'تم ترقية اشتراكك بنجاح!');
-            } catch (error) {
-              console.error('Upgrade error:', error);
-              Alert.alert('خطأ', 'فشلت عملية الترقية. حاول مرة أخرى.');
-            }
-          },
-        },
-      ]
-    );
+    router.push({
+      pathname: '/payment',
+      params: { tier: newTier },
+    });
   };
 
   if (isLoading) {
@@ -118,7 +103,7 @@ export default function SubscriptionScreen() {
                   isCurrentPlan && styles.currentPlanCard,
                 ]}
                 onPress={() => !isCurrentPlan && handleUpgrade(plan.tier)}
-                disabled={isCurrentPlan || isUpgrading}
+                disabled={isCurrentPlan}
               >
                 {plan.tier === 'pro' && (
                   <LinearGradient
@@ -177,15 +162,10 @@ export default function SubscriptionScreen() {
                       plan.tier === 'premium' && styles.premiumButton,
                     ]}
                     onPress={() => handleUpgrade(plan.tier)}
-                    disabled={isUpgrading}
                   >
-                    {isUpgrading ? (
-                      <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                      <Text style={styles.selectButtonText}>
-                        {plan.tier === 'free' ? 'الحالي' : 'ترقية الآن'}
-                      </Text>
-                    )}
+                    <Text style={styles.selectButtonText}>
+                      {plan.tier === 'free' ? 'الحالي' : 'ترقية الآن'}
+                    </Text>
                   </TouchableOpacity>
                 )}
               </TouchableOpacity>

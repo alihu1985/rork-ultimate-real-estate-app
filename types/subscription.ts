@@ -111,3 +111,14 @@ export interface UserUsage {
   periodStart: string;
   periodEnd: string | null;
 }
+
+export type PaymentMethod = 'mastercard' | 'zaincash';
+
+export interface PaymentInfo {
+  method: PaymentMethod;
+  cardNumber?: string;
+  cardHolderName?: string;
+  expiryDate?: string;
+  cvv?: string;
+  phoneNumber?: string;
+}
