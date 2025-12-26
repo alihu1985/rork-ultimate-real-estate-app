@@ -44,7 +44,7 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
             .single();
 
           if (createError) {
-            console.error('Error creating subscription:', createError.message || createError);
+            console.error('Error creating subscription:', createError.message || JSON.stringify(createError));
             return {
               id: 'temp-id',
               userId: user.id,
@@ -121,7 +121,7 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
             .single();
 
           if (createError) {
-            console.error('Error creating usage:', createError.message || createError);
+            console.error('Error creating usage:', createError.message || JSON.stringify(createError));
             return {
               id: 'temp-id',
               userId: user.id,
