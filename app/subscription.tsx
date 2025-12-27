@@ -4,8 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { Stack } from 'expo-router';
@@ -14,16 +12,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { SUBSCRIPTION_PLANS, SubscriptionTier } from '@/types/subscription';
+import { SUBSCRIPTION_PLANS } from '@/types/subscription';
 import Colors from '@/constants/Colors';
 
 export default function SubscriptionScreen() {
   const { user } = useAuth();
   const { tier, usage, limits, isLoading } = useSubscription();
 
-  const handleUpgrade = async (newTier: SubscriptionTier) => {
-    Alert.alert('غير متاح', 'نظام الدفع غير متاح حالياً');
-  };
+
 
   if (isLoading) {
     return (
@@ -82,14 +78,12 @@ export default function SubscriptionScreen() {
             const Icon = plan.tier === 'free' ? Sparkles : plan.tier === 'premium' ? Check : Crown;
 
             return (
-              <TouchableOpacity
+              <View
                 key={plan.tier}
                 style={[
                   styles.planCard,
                   isCurrentPlan && styles.currentPlanCard,
                 ]}
-                onPress={() => !isCurrentPlan && handleUpgrade(plan.tier)}
-                disabled={isCurrentPlan}
               >
                 {plan.tier === 'pro' && (
                   <LinearGradient
@@ -140,12 +134,7 @@ export default function SubscriptionScreen() {
                   ))}
                 </View>
 
-                {!isCurrentPlan && plan.tier !== 'free' && (
-                  <View style={styles.disabledButton}>
-                    <Text style={styles.disabledButtonText}>قريباً</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
+              </View>
             );
           })}
         </View>
@@ -328,36 +317,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     flex: 1,
   },
-  selectButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  proButton: {
-    backgroundColor: '#FFD700',
-  },
-  premiumButton: {
-    backgroundColor: Colors.primary,
-  },
-  selectButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold' as const,
-  },
-  disabledButton: {
-    backgroundColor: '#E0E0E0',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  disabledButtonText: {
-    color: '#999',
-    fontSize: 16,
-    fontWeight: 'bold' as const,
-  },
+
   noteCard: {
     backgroundColor: '#FFF9E6',
     borderRadius: 16,
