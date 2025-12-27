@@ -9,7 +9,6 @@ import {
   Bath,
   Maximize,
   UserCircle,
-  Crown,
 } from 'lucide-react-native';
 import React, { useState, useRef, useMemo } from 'react';
 import {
@@ -27,7 +26,6 @@ import MapView, { Marker, Region } from 'react-native-maps';
 
 import Colors from '@/constants/Colors';
 import { useProperties, useFilteredProperties } from '@/contexts/PropertyContext';
-import { useSubscription } from '@/contexts/SubscriptionContext';
 import { PropertyFilters, Property, PropertyType } from '@/types/property';
 
 const { width } = Dimensions.get('window');
@@ -39,7 +37,6 @@ export default function MapScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { isFavorite, toggleFavorite, error } = useProperties();
-  const { tier } = useSubscription();
   const mapRef = useRef<MapView>(null);
   const scrollRef = useRef<ScrollView>(null);
 
@@ -198,12 +195,6 @@ export default function MapScreen() {
               )}
               <SlidersHorizontal size={20} color={Colors.primary} />
             </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.profileButton}
-            onPress={() => router.push('/subscription' as Href)}
-          >
-            <Crown size={22} color={tier === 'pro' ? '#FFD700' : Colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.profileButton}

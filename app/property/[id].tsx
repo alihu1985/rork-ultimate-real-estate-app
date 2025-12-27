@@ -19,7 +19,6 @@ import MapView, { Marker } from 'react-native-maps';
 import Colors from '@/constants/Colors';
 import { useProperties } from '@/contexts/PropertyContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubscription } from '@/contexts/SubscriptionContext';
 
 const { width } = Dimensions.get('window');
 
@@ -28,9 +27,7 @@ export default function PropertyDetailsScreen() {
   const router = useRouter();
   const { properties, toggleFavorite, isFavorite, deleteProperty, isDeletingProperty } = useProperties();
   const { isAdmin } = useAuth();
-  const { canViewPhone, incrementPhoneViewCount } = useSubscription();
   const [imageIndex, setImageIndex] = useState(0);
-  const [phoneRevealed, setPhoneRevealed] = useState(false);
 
   const formatPrice = (price: number, currency: 'USD' | 'IQD'): string => {
     if (currency === 'USD') {
@@ -50,24 +47,7 @@ export default function PropertyDetailsScreen() {
     );
   }
 
-  const handleCall = async () => {
-    if (!phoneRevealed) {
-      if (!canViewPhone) {
-        Alert.alert(
-          'وصلت للحد المسموح',
-          'لقد وصلت للحد الأقصى لعرض أرقام الهواتف في باقتك الحالية.\n\nللترقية إلى باقة أفضل، اذهب إلى صفحة الاشتراكات.',
-          [
-            { text: 'إلغاء', style: 'cancel' },
-            { text: 'الاشتراكات', onPress: () => router.push('/subscription') },
-          ]
-        );
-        return;
-      }
-      
-      await incrementPhoneViewCount();
-      setPhoneRevealed(true);
-    }
-    
+  const handleCall = () => {
     Linking.openURL(`tel:${property.ownerPhone}`);
   };
 
