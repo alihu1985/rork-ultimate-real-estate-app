@@ -8,8 +8,7 @@ import {
   SubscriptionTier, 
   SUBSCRIPTION_LIMITS, 
   UserSubscription, 
-  UserUsage,
-  SUBSCRIPTION_PLANS 
+  UserUsage
 } from '@/types/subscription';
 
 export const [SubscriptionContext, useSubscription] = createContextHook(() => {
@@ -257,70 +256,7 @@ export const [SubscriptionContext, useSubscription] = createContextHook(() => {
 
   const upgradeMutation = useMutation({
     mutationFn: async (newTier: SubscriptionTier) => {
-      if (!user?.id) throw new Error('المستخدم غير مسجل');
-      if (user.type === 'guest') throw new Error('لا يمكن للضيوف الترقية. يرجى إنشاء حساب أولاً.');
-
-      console.log('Upgrading subscription to:', newTier);
-
-      const { data: userExists, error: checkError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-
-      if (checkError || !userExists) {
-        console.error('❌ المستخدم غير موجود في قاعدة البيانات');
-        throw new Error('المستخدم غير موجود في قاعدة البيانات. يرجى تسجيل الخروج وإعادة تسجيل الدخول.');
-      }
-
-      const { error: updateError } = await supabase
-        .from('user_subscriptions')
-        .update({ is_active: false })
-        .eq('user_id', user.id)
-        .eq('is_active', true);
-
-      if (updateError) {
-        console.error('Error deactivating old subscriptions:', updateError.message || String(updateError));
-        if (updateError.code === 'PGRST205') {
-          throw new Error('يرجى تنفيذ ملف supabase-schema.sql في قاعدة البيانات أولاً. الجداول المطلوبة غير موجودة.');
-        }
-      }
-
-      const plan = SUBSCRIPTION_PLANS.find(p => p.tier === newTier);
-      const endDate = plan && plan.duration > 0 
-        ? new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000).toISOString()
-        : null;
-
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .insert({
-          user_id: user.id,
-          tier: newTier,
-          is_active: true,
-          end_date: endDate,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        const errorMessage = typeof error === 'object' && error !== null && 'message' in error 
-          ? String(error.message) 
-          : String(error);
-        console.error('Error creating subscription:', errorMessage);
-        if (error.code === 'PGRST205') {
-          throw new Error('يرجى تنفيذ ملف supabase-schema.sql في قاعدة البيانات أولاً. الجداول المطلوبة غير موجودة.');
-        }
-        throw new Error(errorMessage || 'فشل في إنشاء الاشتراك');
-      }
-
-      return {
-        id: data.id,
-        userId: data.user_id,
-        tier: data.tier as SubscriptionTier,
-        startDate: data.start_date,
-        endDate: data.end_date,
-        isActive: data.is_active,
-      } as UserSubscription;
+      throw new Error('نظام الترقية غير متاح حالياً');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscription', user?.id] });

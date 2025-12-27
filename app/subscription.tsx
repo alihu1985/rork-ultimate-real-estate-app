@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Check, Crown, Sparkles } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -18,25 +18,11 @@ import { SUBSCRIPTION_PLANS, SubscriptionTier } from '@/types/subscription';
 import Colors from '@/constants/Colors';
 
 export default function SubscriptionScreen() {
-  const { user, isGuest } = useAuth();
+  const { user } = useAuth();
   const { tier, usage, limits, isLoading } = useSubscription();
 
   const handleUpgrade = async (newTier: SubscriptionTier) => {
-    if (isGuest) {
-      Alert.alert('تسجيل الدخول مطلوب', 'يجب تسجيل الدخول أولاً للاشتراك في الباقات المدفوعة');
-      router.push('/login');
-      return;
-    }
-
-    if (newTier === 'free') {
-      Alert.alert('باقة مجانية', 'أنت بالفعل تستخدم الباقة المجانية');
-      return;
-    }
-
-    router.push({
-      pathname: '/payment',
-      params: { tier: newTier },
-    });
+    Alert.alert('غير متاح', 'نظام الدفع غير متاح حالياً');
   };
 
   if (isLoading) {
@@ -154,19 +140,10 @@ export default function SubscriptionScreen() {
                   ))}
                 </View>
 
-                {!isCurrentPlan && (
-                  <TouchableOpacity
-                    style={[
-                      styles.selectButton,
-                      plan.tier === 'pro' && styles.proButton,
-                      plan.tier === 'premium' && styles.premiumButton,
-                    ]}
-                    onPress={() => handleUpgrade(plan.tier)}
-                  >
-                    <Text style={styles.selectButtonText}>
-                      {plan.tier === 'free' ? 'الحالي' : 'ترقية الآن'}
-                    </Text>
-                  </TouchableOpacity>
+                {!isCurrentPlan && plan.tier !== 'free' && (
+                  <View style={styles.disabledButton}>
+                    <Text style={styles.disabledButtonText}>قريباً</Text>
+                  </View>
                 )}
               </TouchableOpacity>
             );
@@ -366,6 +343,18 @@ const styles = StyleSheet.create({
   },
   selectButtonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold' as const,
+  },
+  disabledButton: {
+    backgroundColor: '#E0E0E0',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  disabledButtonText: {
+    color: '#999',
     fontSize: 16,
     fontWeight: 'bold' as const,
   },
