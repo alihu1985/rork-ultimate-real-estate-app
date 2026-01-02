@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { User, LogOut, Mail, Phone, Save, Edit2 } from 'lucide-react-native';
+import { User, LogOut, Mail, Phone, Save, Edit2, Trash2 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -19,7 +19,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, logout, isGuest } = useAuth();
+  const { user, logout, isGuest, deleteAccount, isDeletingAccount } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
@@ -47,6 +47,54 @@ export default function ProfileScreen() {
           onPress: () => {
             logout();
             router.replace('/login');
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'حذف الحساب',
+      'هل أنت متأكد من حذف حسابك؟\n\nسيتم حذف جميع بياناتك بشكل دائم:\n• معلومات الحساب\n• العقارات المضافة\n• المفضلة\n• جميع البيانات المرتبطة\n\nلا يمكن التراجع عن هذا الإجراء.',
+      [
+        {
+          text: 'إلغاء',
+          style: 'cancel',
+        },
+        {
+          text: 'حذف الحساب',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'تأكيد نهائي',
+              'هذا هو التأكيد الأخير. هل أنت متأكد تماماً من حذف حسابك وجميع بياناتك؟',
+              [
+                {
+                  text: 'إلغاء',
+                  style: 'cancel',
+                },
+                {
+                  text: 'نعم، احذف حسابي',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await deleteAccount();
+                      Alert.alert(
+                        'تم الحذف',
+                        'تم حذف حسابك وجميع بياناتك بنجاح',
+                        [{
+                          text: 'حسناً',
+                          onPress: () => router.replace('/login'),
+                        }]
+                      );
+                    } catch (error) {
+                      console.error('Error deleting account:', error);
+                    }
+                  },
+                },
+              ]
+            );
           },
         },
       ]
@@ -210,6 +258,19 @@ export default function ProfileScreen() {
             <LogOut size={20} color={Colors.error} />
             <Text style={styles.logoutButtonText}>تسجيل الخروج</Text>
           </TouchableOpacity>
+
+          {!isGuest && (
+            <TouchableOpacity 
+              style={styles.deleteAccountButton}
+              onPress={handleDeleteAccount}
+              disabled={isDeletingAccount}
+            >
+              <Trash2 size={20} color={Colors.error} />
+              <Text style={styles.deleteAccountButtonText}>
+                {isDeletingAccount ? 'جاري الحذف...' : 'حذف الحساب'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -410,6 +471,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   logoutButtonText: {
+    color: Colors.error,
+    fontSize: 16,
+    fontWeight: '600' as const,
+  },
+  deleteAccountButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    marginTop: 12,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    gap: 8,
+  },
+  deleteAccountButtonText: {
     color: Colors.error,
     fontSize: 16,
     fontWeight: '600' as const,

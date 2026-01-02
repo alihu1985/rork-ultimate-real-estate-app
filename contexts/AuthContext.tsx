@@ -288,6 +288,45 @@ export const [AuthContext, useAuth] = createContextHook(() => {
     saveUserMutation.mutate(null);
   };
 
+  const deleteAccountMutation = useMutation({
+    mutationFn: async () => {
+      if (!user || user.type === 'guest') {
+        throw new Error('لا يمكن حذف حساب الضيف');
+      }
+
+      console.log('🗑️ بدء عملية حذف الحساب:', user.id);
+
+      const { error: deleteUserError } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', user.id);
+
+      if (deleteUserError) {
+        console.error('❌ خطأ في حذف بيانات المستخدم:', deleteUserError);
+        throw new Error('فشل حذف بيانات المستخدم');
+      }
+
+      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (authError) {
+        console.warn('⚠️ تحذير في حذف حساب المصادقة:', authError);
+      }
+
+      await supabase.auth.signOut();
+
+      console.log('✅ تم حذف الحساب بنجاح');
+    },
+    onSuccess: () => {
+      setUser(null);
+      saveUserMutation.mutate(null);
+      queryClient.clear();
+    },
+    onError: (error: Error) => {
+      console.error('Delete account error:', error);
+      Alert.alert('خطأ في حذف الحساب', error.message);
+    },
+  });
+
   return {
     user,
     isAuthenticated: !!user,
@@ -298,8 +337,10 @@ export const [AuthContext, useAuth] = createContextHook(() => {
     signup: signupMutation.mutateAsync,
     loginAsGuest,
     logout,
+    deleteAccount: deleteAccountMutation.mutateAsync,
     isLoggingIn: loginMutation.isPending,
     isSigningUp: signupMutation.isPending,
     isLoading: userQuery.isLoading,
+    isDeletingAccount: deleteAccountMutation.isPending,
   };
 });
